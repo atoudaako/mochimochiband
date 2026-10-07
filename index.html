@@ -218,6 +218,7 @@ body{background:var(--night);color:var(--ink);font-family:var(--f-body);overflow
     <div class="btns">
       <button class="btn" id="bookBtn" type="button">図鑑</button>
       <button class="btn morph" id="morph" type="button" aria-pressed="false">変身</button>
+      <button class="btn" id="fs" type="button" aria-pressed="false">全画面</button>
       <button class="btn" id="rand" type="button">おまかせ</button>
       <button class="btn" id="reset" type="button">リセット</button>
     </div>
@@ -700,6 +701,23 @@ $('#rand').addEventListener('click',async()=>{
   chosen.forEach((s,k)=>place(spots[k],s));
 });
 $('#force').addEventListener('click',()=>document.body.classList.add('force'));
+
+/* 全画面 */
+const docEl=document.documentElement,fsBtn=$('#fs');
+const reqFs=docEl.requestFullscreen||docEl.webkitRequestFullscreen,exitFs=document.exitFullscreen||document.webkitExitFullscreen;
+const isFs=()=>!!(document.fullscreenElement||document.webkitFullscreenElement);
+fsBtn.addEventListener('click',async()=>{
+  try{
+    if(isFs()){await exitFs.call(document);return;}
+    if(!reqFs||document.fullscreenEnabled===false) throw 0;
+    await reqFs.call(docEl,{navigationUI:'hide'});
+  }catch(_){toast('この端末では全画面にできません。ブラウザの「ホーム画面に追加」で全画面になります',true);}
+});
+function onFsChange(){
+  const on=isFs();fsBtn.textContent=on?'全画面を解除':'全画面';fsBtn.setAttribute('aria-pressed',on);
+  try{if(on) screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(()=>{});else screen.orientation&&screen.orientation.unlock&&screen.orientation.unlock();}catch(_){}
+}
+document.addEventListener('fullscreenchange',onFsChange);document.addEventListener('webkitfullscreenchange',onFsChange);
 
 /* 図鑑 */
 const book=$('#book');let bookBuilt=false;
